@@ -90,4 +90,82 @@ internal class GameBoardTest {
     assertEquals(true, board.get(1, -3))
   }
 
+  @Test
+  internal fun `it should make a step`() {
+    //Given
+    val inputStr = """
+      3
+      5 5
+      .....
+      ..x..
+      ..x..
+      ..x..
+      .....
+      """.trimIndent()
+    val board = parseGameBoard(inputStr)
+
+    //When
+    val newBoard = board.makeStep()
+    val newBoardString = printGameBoard(newBoard)
+
+    //Then
+    assertEquals("""
+      .....
+      .....
+      .xxx.
+      .....
+      .....
+    """.trimIndent(),
+    newBoardString)
+  }
+
+  @Test
+  internal fun `it should count cell neighbours`() {
+    //Given
+    val inputStr = """
+      3
+      5 5
+      xx...
+      x....
+      ..x..
+      .....
+      x....
+      """.trimIndent()
+    val board = parseGameBoard(inputStr)
+
+    //When, Then
+    assertEquals(0, board.countNeighbours(2, 2))
+    assertEquals(3, board.countNeighbours(0, 0))
+    assertEquals(2, board.countNeighbours(4, 0))
+    assertEquals(4, board.countNeighbours(1, 1))
+  }
+
+  @Test
+  internal fun `it should play game`() {
+    //Given
+    val inputStr = """
+      1
+      5 5
+      .....
+      ..x..
+      ..x..
+      ..x..
+      .....
+      """.trimIndent()
+    val board = parseGameBoard(inputStr)
+
+    //When
+    val finalBoard = playGame(board)
+    val finalBoardStr = printGameBoard(finalBoard)
+
+    //Then
+    assertEquals("""
+      .....
+      .....
+      .xxx.
+      .....
+      .....
+    """.trimIndent(),
+      finalBoardStr)
+  }
 }

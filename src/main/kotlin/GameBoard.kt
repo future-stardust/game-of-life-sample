@@ -3,6 +3,8 @@ interface GameBoard {
   fun columnsCount(): Int
   fun leftGenerationCount(): Int
   fun get(row: Int, column: Int): Boolean
+  fun makeStep(): GameBoard
+  fun countNeighbours(row: Int, column: Int): Int
 }
 
 private data class Point(val row: Int, val column: Int)
@@ -17,6 +19,38 @@ private data class GameBoardImpl(
   override fun rowsCount(): Int = rows
   override fun columnsCount(): Int = columns
   override fun leftGenerationCount(): Int = generations
+
+  override fun makeStep(): GameBoard {
+    val newPoints: MutableSet<Point> = mutableSetOf()
+
+    for (row in 0 until rows) {
+      for (column in 0 until columns) {
+        when (countNeighbours(row, column)) {
+          3 -> newPoints += Point(row, column)
+          2-> if (get(row, column)) newPoints += Point(row, column)
+        }
+      }
+    }
+
+    return copy(points = newPoints)
+  }
+
+  override fun countNeighbours(row: Int, column: Int): Int {
+    var count = 0
+
+    count += if (get(row - 1, column - 1)) 1 else 0
+    count += if (get(row - 1, column)) 1 else 0
+    count += if (get(row - 1, column + 1)) 1 else 0
+
+    count += if (get(row, column - 1)) 1 else 0
+    count += if (get(row, column + 1)) 1 else 0
+
+    count += if (get(row + 1, column - 1)) 1 else 0
+    count += if (get(row + 1, column)) 1 else 0
+    count += if (get(row + 1, column + 1)) 1 else 0
+
+    return count
+  }
 }
 
 fun parseGameBoard(inputStr: String): GameBoard {
@@ -51,4 +85,12 @@ fun printGameBoard(board: GameBoard): String {
   }
 
   return str
+}
+
+fun playGame(board: GameBoard): GameBoard {
+  var brd = board
+  for (i in 0 until board.leftGenerationCount()) {
+    brd = brd.makeStep()
+  }
+  return brd
 }
