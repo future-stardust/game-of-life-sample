@@ -96,7 +96,7 @@ private data class GameBoardImpl(
       }
     }
 
-    return copy(points = newPoints)
+    return copy(points = newPoints, generations = generations - 1)
   }
 
   override fun countNeighbours(row: Int, column: Int): Int {

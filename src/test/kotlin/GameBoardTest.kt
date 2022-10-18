@@ -117,6 +117,7 @@ internal class GameBoardTest {
       .....
     """.trimIndent(),
     newBoardString)
+    assertEquals(2, newBoard.leftGenerationsCount())
   }
 
   @Test
