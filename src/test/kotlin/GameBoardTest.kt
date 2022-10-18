@@ -19,7 +19,7 @@ internal class GameBoardTest {
     val board = parseGameBoard(inputStr)
 
     // Then
-    assertEquals(3, board.leftGenerationCount())
+    assertEquals(3, board.leftGenerationsCount())
 
     assertEquals(5, board.rowsCount())
     assertEquals(5, board.columnsCount())
@@ -138,34 +138,5 @@ internal class GameBoardTest {
     assertEquals(3, board.countNeighbours(0, 0))
     assertEquals(2, board.countNeighbours(4, 0))
     assertEquals(4, board.countNeighbours(1, 1))
-  }
-
-  @Test
-  internal fun `it should play game`() {
-    //Given
-    val inputStr = """
-      1
-      5 5
-      .....
-      ..x..
-      ..x..
-      ..x..
-      .....
-      """.trimIndent()
-    val board = parseGameBoard(inputStr)
-
-    //When
-    val finalBoard = playGame(board)
-    val finalBoardStr = printGameBoard(finalBoard)
-
-    //Then
-    assertEquals("""
-      .....
-      .....
-      .xxx.
-      .....
-      .....
-    """.trimIndent(),
-      finalBoardStr)
   }
 }
