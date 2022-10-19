@@ -1,28 +1,15 @@
-import org.junit.jupiter.api.Assertions.*
+import io.mockk.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 internal class MainKtTest {
-  val messages = mutableListOf<String>()
-  private val outputMock: MainOutput = object : MainOutput {
-    override fun printLine(msg: String) {
-      messages.add(msg)
-    }
-  }
-
-  private val defaultFsMock = object : FileSystem {
-    override fun ifFileExist(filePath: String): Boolean {
-      throw RuntimeException("ifFileExist has been called unexpectedly")
-    }
-
-    override fun readFileAsString(filePath: String): String {
-      throw RuntimeException("readFileAsString has been called unexpectedly")
-    }
-  }
+  private val outputMock: MainOutput = mockk()
+  private val defaultFsMock: FileSystem = mockk()
 
   @BeforeEach
   internal fun setUp() {
-    messages.clear()
+    clearAllMocks()
+    every { outputMock.printLine(any()) } just Runs
   }
 
   @Test
@@ -31,50 +18,42 @@ internal class MainKtTest {
     mainHandler(emptyArray(), outputMock, defaultFsMock)
 
     // Then
-    assertEquals(1, messages.size)
-    assertEquals(Messages.noArgs, messages[0])
+    verify(exactly = 1) { outputMock.printLine(Messages.noArgs) }
   }
 
   @Test
   internal fun `it should check if input file exists and if not then show a message`() {
     // Given
-    val fsMock = object : FileSystem {
-      override fun ifFileExist(filePath: String): Boolean = false
-      override fun readFileAsString(filePath: String): String {
-        throw RuntimeException("readFileAsString has been called unexpectedly")
-      }
-    }
+    val fsMock: FileSystem = mockk()
+    every { fsMock.ifFileExist(any()) } returns false
 
     // When
     mainHandler(arrayOf("input.txt"), outputMock, fsMock)
 
     // Then
-    assertEquals(1, messages.size)
-    assertEquals(Messages.inputFileDoesNotExist, messages[0])
+    verify(exactly = 1) { outputMock.printLine(Messages.inputFileDoesNotExist) }
   }
 
   @Test
   internal fun `it should parse input file and throw an error if it is wrong`() {
     // Given
-    val fsMock = object : FileSystem {
-      override fun ifFileExist(filePath: String): Boolean = true
-      override fun readFileAsString(filePath: String): String = "Wrong input file body"
-    }
+    val fsMock: FileSystem = mockk()
+    every { fsMock.ifFileExist(any()) } returns true
+    every { fsMock.readFileAsString(any()) } returns "Wrong input file body"
 
     // When
     mainHandler(arrayOf("input.txt"), outputMock, fsMock)
 
     // Then
-    assertEquals(1, messages.size)
-    assertEquals(Messages.inputFileContainsSmthWrong, messages[0])
+    verify(exactly = 1) { outputMock.printLine(Messages.inputFileContainsSmthWrong) }
   }
 
   @Test
   internal fun `it should print final board state`() {
     // Given
-    val fsMock = object : FileSystem {
-      override fun ifFileExist(filePath: String): Boolean = true
-      override fun readFileAsString(filePath: String): String = """
+    val fsMock: FileSystem = mockk()
+    every { fsMock.ifFileExist(any()) } returns true
+    every { fsMock.readFileAsString(any()) } returns """
           3
           5 5
           .....
@@ -83,14 +62,11 @@ internal class MainKtTest {
           ..x..
           .....
           """.trimIndent()
-    }
 
     // When
     mainHandler(arrayOf("input.txt"), outputMock, fsMock)
 
     // Then
-    assertEquals(1, messages.size)
-
     val finalBoard = """
           .....
           .....
@@ -98,6 +74,49 @@ internal class MainKtTest {
           .....
           .....
           """.trimIndent()
-    assertEquals(finalBoard , messages[0])
+    verify(exactly = 1) { outputMock.printLine(finalBoard) }
+  }
+
+  @Test
+  internal fun `it should print each generation if '-printEachGeneration' param is passed`() {
+    // Given
+    val fsMock: FileSystem = mockk()
+    every { fsMock.ifFileExist(any()) } returns true
+    every { fsMock.readFileAsString(any()) } returns """
+          1
+          5 5
+          .....
+          ..x..
+          ..x..
+          ..x..
+          .....
+          """.trimIndent()
+
+    // When
+    mainHandler(arrayOf("input.txt", "-printEachGeneration"), outputMock, fsMock)
+
+    // Then
+    verify {
+      outputMock.printLine("""
+          GENERATION 0
+          .....
+          ..x..
+          ..x..
+          ..x..
+          .....
+          
+          """.trimIndent()
+      )
+      outputMock.printLine("""
+          GENERATION 1
+          .....
+          .....
+          .xxx.
+          .....
+          .....
+          
+          """.trimIndent()
+      )
+    }
   }
 }
