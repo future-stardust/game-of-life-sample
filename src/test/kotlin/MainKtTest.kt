@@ -76,4 +76,47 @@ internal class MainKtTest {
           """.trimIndent()
     verify(exactly = 1) { outputMock.printLine(finalBoard) }
   }
+
+  @Test
+  internal fun `it should print each generation if '-printEachGeneration' param is passed`() {
+    // Given
+    val fsMock: FileSystem = mockk()
+    every { fsMock.ifFileExist(any()) } returns true
+    every { fsMock.readFileAsString(any()) } returns """
+          1
+          5 5
+          .....
+          ..x..
+          ..x..
+          ..x..
+          .....
+          """.trimIndent()
+
+    // When
+    mainHandler(arrayOf("input.txt", "-printEachGeneration"), outputMock, fsMock)
+
+    // Then
+    verify {
+      outputMock.printLine("""
+          GENERATION 0
+          .....
+          ..x..
+          ..x..
+          ..x..
+          .....
+          
+          """.trimIndent()
+      )
+      outputMock.printLine("""
+          GENERATION 1
+          .....
+          .....
+          .xxx.
+          .....
+          .....
+          
+          """.trimIndent()
+      )
+    }
+  }
 }

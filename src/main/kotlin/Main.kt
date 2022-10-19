@@ -38,6 +38,8 @@ fun mainHandler(args: Array<String>, output: MainOutput, fs: FileSystem) {
     return
   }
 
+  val printEachGeneration = args.size > 1 && args[1] == "-printEachGeneration"
+
   val board = try {
     parseGameBoard(fs.readFileAsString(inputFilePath))
   } catch (e: Exception) {
@@ -47,15 +49,21 @@ fun mainHandler(args: Array<String>, output: MainOutput, fs: FileSystem) {
   if (board == null) {
     output.printLine(Messages.inputFileContainsSmthWrong)
   } else {
-    val finalBoard = playGame(board)
-    output.printLine(printGameBoard(finalBoard))
+    if (printEachGeneration) {
+      playGameAndReturnAllGenerations(board)
+        .mapIndexed { index, gameBoard -> "GENERATION $index\n${printGameBoard(gameBoard)}\n" }
+        .forEach { output.printLine(it) }
+    } else {
+      val finalBoard = playGame(board)
+      output.printLine(printGameBoard(finalBoard))
+    }
   }
 }
 
 object Messages {
   val noArgs = """
     Hello! It's Game of Life. Please, pass me an input file. Example:
-    > gameoflife input.txt
+    > gameoflife input.txt [-printEachGeneration]
   """.trimIndent()
 
   val inputFileDoesNotExist = """
